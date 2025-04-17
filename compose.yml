@@ -1,0 +1,87 @@
+include:
+  - ./monitoring/compose.monitor.yml
+services:  
+  frontend:   
+    container_name: frontend
+    build:  
+      context: ./frontend  
+      dockerfile: ./dockerfile  
+    ports:  
+      - "3000:3000"  
+    depends_on:  
+      - backend  
+    env_file:
+      - frontend/.env  
+    networks:  
+      - network  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`fastapi.duckdns.org`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt" 
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+  backend:  
+    container_name: backend
+    build:  
+      context: ./backend  
+      dockerfile: ./dockerfile  
+    ports:  
+      - "8000:8000"  
+    networks:  
+      - network  
+    env_file:
+      - backend/.env 
+    depends_on:  
+      - postgres  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`fastapi.duckdns.org`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt" 
+      - "traefik.http.services.frontend.loadbalancer.server.port=8000"
+
+  postgres:  
+    image: postgres  
+    container_name: postgres-db  
+    restart: unless-stopped  
+    environment:  
+      - POSTGRES_USER=${POSTGRES_USER}  
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  
+      - POSTGRES_DB=${POSTGRES_DB}  
+    ports:  
+      - "5432:5432"  
+    networks:  
+      - network  
+
+  adminer:  
+    image: adminer:latest  
+    container_name: adminer  
+    restart: unless-stopped  
+    ports:  
+      - "8081:8080"  
+    environment:  
+      - ADMINER_DEFAULT_SERVER=postgres-db  
+    depends_on:  
+      - postgres  
+    networks:  
+      - network
+
+  traefik:
+    image: docker.io/library/traefik:v3.3.3
+    container_name: traefik
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /run/docker.sock:/run/docker.sock:ro
+      - ./traefik.yaml:/etc/traefik/traefik.yml
+      - ./letsencrypt:/letsencrypt
+      # - /etc/letsencrypt:/letsencrypt:ro
+    networks:
+      - network
+    restart: unless-stopped
+
+networks:
+  network:
+    external: true
