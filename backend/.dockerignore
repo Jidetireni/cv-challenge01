@@ -2,4 +2,3 @@ dockerfile
 .dockerignore
 .git
 .gitignore
-.env
