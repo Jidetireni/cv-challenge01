@@ -1,0 +1,37 @@
+version: "3"
+
+vars:
+  REPO: tireni/fastapip-fe
+  TAG: banm
+  PORT: 3000
+  IMAGE_REPO: "{{.REPO}}"
+  IMAGE_TAG: "{{.TAG}}"
+
+tasks:
+  build-image:
+    desc: Build the Docker image
+    cmds:
+      - docker build -t {{.IMAGE_REPO}}:{{.IMAGE_TAG}} .
+
+  run-container:
+    desc: Run the Docker container
+    cmds:
+      - docker run -d -p {{.PORT}}:{{.PORT}} --name fastapip-fe {{.IMAGE_REPO}}:{{.IMAGE_TAG}}
+
+  push-registry:
+    desc: Push the Docker image to registry
+    cmds:
+      - docker push {{.IMAGE_REPO}}:{{.IMAGE_TAG}}
+
+  stop-container:
+    desc: Stop and remove the Docker container
+    cmds:
+      - docker stop fastapip-fe || true
+      - docker rm fastapip-fe || true
+
+  rebuild:
+    desc: Stop, remove, rebuild, and run container
+    deps: [stop-container]
+    cmds:
+      - task: build-image
+      - task: run-container

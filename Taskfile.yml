@@ -1,0 +1,59 @@
+version: "3"
+
+vars: {}
+
+tasks:
+  up:
+    desc: Bring all the containers up
+    cmds:
+      - docker compose up -d
+
+  down:
+    desc: Bring all the containers down
+    cmds:
+      - docker compose down
+
+  build:
+    desc: Build all images defined in the Docker Compose file
+    cmds:
+      - docker compose build
+
+  restart:
+    desc: Restart all services
+    cmds:
+      - docker compose restart
+
+  logs:
+    desc: Show logs from containers
+    cmds:
+      - docker compose logs -f
+
+  ps:
+    desc: List all running containers
+    cmds:
+      - docker compose ps
+
+  stop:
+    desc: Stop all running containers without removing them
+    cmds:
+      - docker compose stop
+
+  start:
+    desc: Start previously stopped containers
+    cmds:
+      - docker compose start
+
+  up:one:
+    desc: Bring up a specific container (e.g. task up:one -- service-name)
+    cmds:
+      - docker compose up -d {{.CLI_ARGS}}
+
+  build:one:
+    desc: Build a specific container (e.g. task build:one -- service-name)
+    cmds:
+      - docker compose build {{.CLI_ARGS}}
+
+  stop:one:
+    desc: Stop a specific container (e.g. task stop:one -- service-name)
+    cmds:
+      - docker compose stop {{.CLI_ARGS}}
